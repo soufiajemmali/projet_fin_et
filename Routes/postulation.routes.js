@@ -10,3 +10,4 @@ router.put('/update/by_id/:id',postulationController.update_postulation)
 router.delete('/delete/by_id/:id',postulationController.delete_postulation)
  */
 module.exports=router
+

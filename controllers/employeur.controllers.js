@@ -1,8 +1,12 @@
 const Employeur = require("../model/employeur");
 
+const sequelize=require('../config/config')
+const { QueryTypes } = require('sequelize');
+
 const Adress = require("../model/adress");
 const Job_offer = require("../model/job_offer");
 const Domaine = require("../model/domaine");
+
 
 const register = async (req, res) => {
   const employeurExist = await Employeur.findOne({
@@ -133,6 +137,19 @@ const delete_job_offer = (req, res) => {
       console.log("fail delete : ",e)});
 }
 
+
+const getjob_Offre_employeur=async(req,res)=>{
+const {id}=req.params
+  sequelize.query(`select c.nom , jo.titre  from candidat c ,job_offer jo ,postulation p  
+  where jo.id_employeur = ${id}
+  and p.id_joboffer =jo.id and p.id_candidat =c.id group by jo.titre,c.nom  `, { type: QueryTypes.SELECT })
+ .then((r)=>{
+    res.status(200).send(r)
+ })
+ .catch((err)=>{
+  res.status(400).send({message:"fail",err})
+ })
+}
 /*const post_employeur=(req,res)=>{
     Employeur.create({
         nom_societe:req.body.nom_societe,
@@ -218,4 +235,5 @@ module.exports = {
   publication,
   update_job_offer,
   delete_job_offer,
+  getjob_Offre_employeur,
 };

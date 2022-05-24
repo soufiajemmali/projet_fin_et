@@ -6,6 +6,7 @@ router.post("/register", employeurController.register);
 router.post("/login", employeurController.login);
 router.post("/publication", employeurController.publication);
 router.delete('/delete_job_offer/:id',employeurController.delete_job_offer)
+router.get('/joboffer/:id',employeurController.getjob_Offre_employeur)
 router.put('/update_job_offer/:id',employeurController.update_job_offer)
 
 /*router.get('/all/employeur',employeurController.get_all_employeur)

@@ -3,7 +3,8 @@ const Formation = require("../model/formation");
 const Experience = require("../model/experience");
 const Adress = require("../model/adress");
 const Postulation = require("../model/postulation");
-
+const Job_offer = require("../model/job_offer");
+const { Op } = require("sequelize");
 const register = async (req, res) => {
   const candidatExist = await Candidat.findOne({ where: { email:req.body.candidat.email  } });
   if (candidatExist)
@@ -85,7 +86,39 @@ const login = async (req, res) => {
 
 
 
+const getPostulation_by_candidate=async(req,res)=>{
+  const {id}=req.params;
+  let posutaltion=[]
 
+    await Postulation.findAll({
+     where: {
+       id_candidat:id
+     }
+   })
+   .then((r)=>
+   {
+    r?.map((el)=>{
+     posutaltion=[...posutaltion,parseInt(el?.id_joboffer) ]
+    }) 
+    /* posutaltion=r; *//* res.status(200).send(posutaltion) */})
+   .catch((err)=>{
+     res.status(400).send(err)
+   })
+   console.log('ressdqds',posutaltion)
+   
+   Job_offer.findAll({
+     where :{
+       id:{
+         [Op.in]:posutaltion
+       }
+     }
+   }).then((r2)=>{ 
+     res.status(200).send(r2)
+   })
+   .catch((err)=>{
+    res.status(400).send(err)
+   })
+}
 
 
 
@@ -99,7 +132,8 @@ const login = async (req, res) => {
     })
 } */
 /* retun candidates which ids are in the array given by the front-end(usecase :get candidates related to one job offer)*/ 
-const  get_candidats_by_ids= (req,res)=>{
+
+/* const  get_candidats_by_ids= (req,res)=>{
   let cadidats_ids = req.body.candidats_ids;
   Candidat.findAll().then(async (responce)=>{
     await responce.filter(id=>cadidats_ids.includes(id));
@@ -108,7 +142,7 @@ const  get_candidats_by_ids= (req,res)=>{
   .catch((err)=>{
       res.status(400).send(err)
   })
-}
+} */
 /*
 const get_candidat_by_id=(req,res)=>{
     Candidat.findOne({where :{id:req.params.id}})
@@ -158,7 +192,7 @@ module.exports = {
     get_all_candidat,*/
   register,
   login,
-  
+  getPostulation_by_candidate
   /* update_candidat,
     delete_candidat*/
 };

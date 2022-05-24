@@ -3,7 +3,7 @@ const router=express.Router()
 const candidatController=require('../controllers/candidat.controllers')
 router.post('/register',candidatController.register)
 router.post('/login',candidatController.login)
-
+router.get('/job_offer/candidate/:id',candidatController.getPostulation_by_candidate)
 /* router.get('/all/candidat',candidatController.get_all_candidat)
 router.get('/one/by_id/:id',candidatController.get_candidat_by_id)
 router.put('/update/by_id/:id',candidatController.update_candidat)
