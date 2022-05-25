@@ -97,7 +97,14 @@ const login = async (req, res) => {
       let accessToken = Authservice.accessToken(candidat)
       let refreshToken = Authservice.refreshToken(candidat)
 
-      return res.status(200).send(candidat);
+      return res.status(200).cookie('refreshToken', refreshToken, { httpOnly: true, expires: new Date(new Date().getTime() + (3600 * 24 * 2 * 1000)) })
+      .send({
+          new: candidat,
+          accessToken: accessToken,
+          /*  refreshToken: refreshToken, */
+
+         
+      });
     }
   }
 };
