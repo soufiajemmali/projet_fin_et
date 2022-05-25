@@ -1,14 +1,19 @@
 const Employeur = require("../model/employeur");
 
-const sequelize=require('../config/config')
-const { QueryTypes } = require('sequelize');
+const sequelize = require("../config/config");
+const { QueryTypes } = require("sequelize");
 
 const Adress = require("../model/adress");
 const Job_offer = require("../model/job_offer");
 const Domaine = require("../model/domaine");
+const Authservice = require("../service/auth.service");
 
+const bcrypt = require("bcrypt");
 
 const register = async (req, res) => {
+  const salt = await bcrypt.genSalt(10);
+  const hashpass = await bcrypt.hash(req.body.employeur.mdp, salt);
+
   const employeurExist = await Employeur.findOne({
     where: { email: req.body.employeur.email },
   });
@@ -32,7 +37,7 @@ const register = async (req, res) => {
       nom_societe: req.body.employeur.nom_societe,
       site_officiel: req.body.employeur.site_officiel,
       email: req.body.employeur.email,
-      password: req.body.employeur.mdp,
+      password: hashpass,
       tel: req.body.employeur.tel,
       type: "employeur",
       active: true,
@@ -48,7 +53,8 @@ const register = async (req, res) => {
 };
 
 const login = async (req, res) => {
-  const { email, password } = req.body;
+  const { email } = req.body;
+
   const employeur = await Employeur.findOne({ where: { email: email } }).catch(
     (err) => {
       console.log("Error: ", err);
@@ -58,13 +64,28 @@ const login = async (req, res) => {
   if (!employeur) {
     return res.status(400).json({ message: "Email does not match!" });
   } else {
-    if (employeur.password !== password) {
+    const validPass = await bcrypt.compare(req.body.mdp, employeur.password);
+    if (!validPass) {
       return res.status(400).json({ message: "password does not match!" });
     } else {
+
+      let accessToken = Authservice.accessToken(employeur)
+      let refreshToken = Authservice.refreshToken(employeur)
+
       return res.status(200).send(employeur);
     }
   }
 };
+
+/*
+//logout user
+app.get('/api/logout',auth,function(req,res){
+  req.user.deleteToken(req.token,(err,user)=>{
+      if(err) return res.status(400).send(err);
+      res.sendStatus(200);
+  });
+
+}); */
 
 const publication = async (req, res) => {
   let dom = null;
@@ -96,15 +117,12 @@ const publication = async (req, res) => {
   }
 };
 
-
-
-
 const update_job_offer = async (req, res) => {
-  const domaine =await Domaine.update({
-    nom: req.body.domaine.nom 
+  const domaine = await Domaine.update({
+    nom: req.body.domaine.nom,
   }).catch((e) => console.log("fail : ", e));
-  
-  const job_offer= await Job_offer.update(
+
+  const job_offer = await Job_offer.update(
     {
       titre: req.body.job_offer.titre,
       description: req.body.job_offer.description,
@@ -117,39 +135,44 @@ const update_job_offer = async (req, res) => {
     },
     { where: { id: req.params.id } }
   )
-  .then((r) => {
-    res.status(200).send({message:"job offer updated"})
-    console.log('response if success',r)
-  })
-  .catch((e) => {
-    res.status(400).send({message:"fail"})
-    console.log("fail update : ",e)});
+    .then((r) => {
+      res.status(200).send({ message: "job offer updated" });
+      console.log("response if success", r);
+    })
+    .catch((e) => {
+      res.status(400).send({ message: "fail" });
+      console.log("fail update : ", e);
+    });
 };
 
 const delete_job_offer = (req, res) => {
   Job_offer.destroy({ where: { id: req.params.id } })
     .then((r) => {
-      res.status(200).send({message:"job offer deleted",})
-      console.log('response if success',r)
+      res.status(200).send({ message: "job offer deleted" });
+      console.log("response if success", r);
     })
     .catch((e) => {
-      res.status(400).send({message:"fail"})
-      console.log("fail delete : ",e)});
-}
+      res.status(400).send({ message: "fail" });
+      console.log("fail delete : ", e);
+    });
+};
 
-
-const getjob_Offre_employeur=async(req,res)=>{
-const {id}=req.params
-  sequelize.query(`select c.nom , jo.titre  from candidat c ,job_offer jo ,postulation p  
+const getjob_Offre_employeur = async (req, res) => {
+  const { id } = req.params;
+  sequelize
+    .query(
+      `select c.nom , jo.titre  from candidat c ,job_offer jo ,postulation p  
   where jo.id_employeur = ${id}
-  and p.id_joboffer =jo.id and p.id_candidat =c.id group by jo.titre,c.nom  `, { type: QueryTypes.SELECT })
- .then((r)=>{
-    res.status(200).send(r)
- })
- .catch((err)=>{
-  res.status(400).send({message:"fail",err})
- })
-}
+  and p.id_joboffer =jo.id and p.id_candidat =c.id group by jo.titre,c.nom  `,
+      { type: QueryTypes.SELECT }
+    )
+    .then((r) => {
+      res.status(200).send(r);
+    })
+    .catch((err) => {
+      res.status(400).send({ message: "fail", err });
+    });
+};
 /*const post_employeur=(req,res)=>{
     Employeur.create({
         nom_societe:req.body.nom_societe,
