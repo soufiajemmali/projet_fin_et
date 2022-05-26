@@ -5,8 +5,9 @@ const Adress = require("../model/adress");
 const Postulation = require("../model/postulation");
 const Job_offer = require("../model/job_offer");
 const { Op } = require("sequelize");
-const Authservice = require("../service/auth.service");
 
+const Authservice = require("../service/auth.service");
+const jwt =require("jsonwebtoken")
 const bcrypt = require("bcrypt");
 
 const register = async (req, res) => {
@@ -44,9 +45,8 @@ const register = async (req, res) => {
       type: "candidat",
       active: true,
       id_adress: ad?.dataValues?.id,
-
-      /*refresh_token:req.body.refresh_token,
-        imageprofil:req.body.imageprofil*/
+    
+       /* imageprofil:req.body.imageprofil*/
     })
       .then((r) => {
         exper = r;
@@ -101,13 +101,43 @@ const login = async (req, res) => {
       .send({
           new: candidat,
           accessToken: accessToken,
-          /*  refreshToken: refreshToken, */
-
-         
+          /*  refreshToken: refreshToken, */       
       });
     }
   }
 };
+
+const refreshToken = async (req, res) => {
+  if (req?.cookies?.refreshToken !== undefined) {
+     jwt.verify(req.cookies.refreshToken,'$2a$12$/8EzGDLZe8xJGCEgJ6RTnORT.X8qXTJC/MK/Thd6nq959v8x/Viiq',async(err,decode)=>{
+         if(err)
+         return res.status(400).send({message:'token expired'})
+         else {
+          let Cand=null
+          console.log('cand',decode)
+           await Candidat.findOne({where: {id:decode.id}}).then((r)=>{
+              Cand=r
+             
+           }).catch((err)=>{
+             res.status(400).send({message:'Error in getting candidat'})
+           })
+          
+           if(Cand.id===undefined)
+           {return res.status(400).send({message:'there is no candidat'})}
+           else {
+               let accessToken = Authservice.accessToken(Cand)
+               res.status(200).send({
+                data: Cand,
+                accessToken: accessToken,
+            })
+           }
+         }
+     }) 
+  }
+  else
+      res.status(402).send({ message: 'no refresh provided' })
+}
+
 
 /*
 //logout user
@@ -224,6 +254,7 @@ module.exports = {
   register,
   login,
   getPostulation_by_candidate,
+  refreshToken,
   /* update_candidat,
     delete_candidat*/
 };

@@ -6,8 +6,9 @@ const { QueryTypes } = require("sequelize");
 const Adress = require("../model/adress");
 const Job_offer = require("../model/job_offer");
 const Domaine = require("../model/domaine");
-const Authservice = require("../service/auth.service");
 
+const Authservice = require("../service/auth.service");
+const jwt =require("jsonwebtoken")
 const bcrypt = require("bcrypt");
 
 const register = async (req, res) => {
@@ -42,8 +43,8 @@ const register = async (req, res) => {
       type: "employeur",
       active: true,
       id_adress: ad?.dataValues?.id,
-      /*refresh_token:req.body.refresh_token,
-    imageprofil:req.body.imageprofil*/
+
+    /* imageprofil:req.body.imageprofil*/
     });
 
     return res.status(200).send(employeur);
@@ -72,10 +73,46 @@ const login = async (req, res) => {
       let accessToken = Authservice.accessToken(employeur)
       let refreshToken = Authservice.refreshToken(employeur)
 
-      return res.status(200).send(employeur);
+      return res.status(200).cookie('refreshToken', refreshToken, { httpOnly: true, expires: new Date(new Date().getTime() + (3600 * 24 * 2 * 1000)) })
+      .send({
+          new: employeur,
+          accessToken: accessToken,
+          /*  refreshToken: refreshToken, */
+      });
     }
   }
 };
+
+const refreshToken = async (req, res) => {
+  if (req?.cookies?.refreshToken !== undefined) {
+     jwt.verify(req.cookies.refreshToken,'$2a$12$/8EzGDLZe8xJGCEgJ6RTnORT.X8qXTJC/MK/Thd6nq959v8x/Viiq',async(err,decode)=>{
+         if(err)
+         return res.status(400).send({message:'token expired'})
+         else {
+          let Emp=null
+          console.log('empls',decode)
+           await Employeur.findOne({where: {id:decode.id}}).then((r)=>{
+              Emp=r
+             
+           }).catch((err)=>{
+             res.status(400).send({message:'Error in getting candidat'})
+           })
+          
+           if(Emp.id===undefined)
+           {return res.status(400).send({message:'there is no employer'})}
+           else {
+               let accessToken = Authservice.accessToken(Emp)
+               res.status(200).send({
+                data: Emp,
+                accessToken: accessToken,
+            })
+           }
+         }
+     }) 
+  }
+  else
+      res.status(402).send({ message: 'no refresh provided' })
+}
 
 /*
 //logout user
@@ -256,7 +293,9 @@ module.exports = {
   register,
   login,
   publication,
+  refreshToken,
   update_job_offer,
   delete_job_offer,
   getjob_Offre_employeur,
+  
 };

@@ -2,6 +2,7 @@ const express = require("express");
 
 const connect = require("./config/connection");
 const bodyParser = require("body-parser");
+const cookieParser = require('cookie-parser');
 const dotenv=require("dotenv");
 const adressRoute = require("./Routes/adress.routes");
 const employeurRoute = require("./Routes/employeur.routes");
@@ -21,7 +22,7 @@ const db = connect().authDb();
 const app = express();
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
-
+app.use(cookieParser())
 app.use("/candidat", candidatRoute);
 app.use("/adress", adressRoute);
 app.use("/employeur", employeurRoute);
