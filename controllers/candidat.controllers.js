@@ -9,6 +9,7 @@ const { Op } = require("sequelize");
 const Authservice = require("../service/auth.service");
 const jwt =require("jsonwebtoken")
 const bcrypt = require("bcrypt");
+const router = require("../Routes/candidat.routes");
 
 const register = async (req, res) => {
   const salt = await bcrypt.genSalt(10);
@@ -139,15 +140,11 @@ const refreshToken = async (req, res) => {
 }
 
 
-/*
-//logout user
-app.get('/api/logout',auth,function(req,res){
-  req.user.deleteToken(req.token,(err,user)=>{
-      if(err) return res.status(400).send(err);
-      res.sendStatus(200);
-  });
 
-}); */
+
+const logout=async(req,res)=>{
+  res.status(200).clearCookie('refreshToken').send({message:'cookies cleared'})
+}
 
 const getPostulation_by_candidate = async (req, res) => {
   const { id } = req.params;
@@ -255,6 +252,7 @@ module.exports = {
   login,
   getPostulation_by_candidate,
   refreshToken,
+  logout
   /* update_candidat,
     delete_candidat*/
 };

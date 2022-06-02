@@ -12,7 +12,7 @@ const Employeur=sequelize.define('employeur',{
     site_officiel:{type:Sequelize.STRING}, 
     tel:{type:Sequelize.STRING},
     id_adress:{type:Sequelize.INTEGER},
-    refreshToken:{type:Sequelize.STRING},
+    
      /*imageprofil:{type:Sequelize.STRING},*/
 },{tableName})
 

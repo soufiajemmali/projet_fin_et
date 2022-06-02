@@ -114,15 +114,10 @@ const refreshToken = async (req, res) => {
       res.status(402).send({ message: 'no refresh provided' })
 }
 
-/*
-//logout user
-app.get('/api/logout',auth,function(req,res){
-  req.user.deleteToken(req.token,(err,user)=>{
-      if(err) return res.status(400).send(err);
-      res.sendStatus(200);
-  });
-
-}); */
+const logout=async(req,res)=>{
+  res.status(200).clearCookie('refreshToken').send({message:'cookies cleared'})
+ ;
+}
 
 const publication = async (req, res) => {
   let dom = null;
@@ -210,6 +205,16 @@ const getjob_Offre_employeur = async (req, res) => {
       res.status(400).send({ message: "fail", err });
     });
 };
+const get_employeur_by_id = (req, res) => {
+  Employeur.findOne({ where: { id: req.params.id } })
+    .then((responce) => {
+      res.status(200).send(responce);
+    })
+    .catch((err) => {
+      res.status(400).send(err);
+    });
+};
+
 /*const post_employeur=(req,res)=>{
     Employeur.create({
         nom_societe:req.body.nom_societe,
@@ -286,14 +291,16 @@ const delete_employeur = (req, res) => {
 }; */
 
 module.exports = {
-  /* get_employeur_by_id,
+ /*  
   get_all_employeur,
   update_employeur,
   delete_employeur,*/
+  get_employeur_by_id,
   register,
   login,
   publication,
   refreshToken,
+  logout,
   update_job_offer,
   delete_job_offer,
   getjob_Offre_employeur,

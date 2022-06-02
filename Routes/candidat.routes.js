@@ -9,5 +9,6 @@ router.post('/refresh',candidatController.refreshToken)
 router.get('/one/by_id/:id',candidatController.get_candidat_by_id)
 router.put('/update/by_id/:id',candidatController.update_candidat)
 router.delete('/delete/by_id/:id',candidatController.delete_candidat) */
+router.post("/logout", candidatController.logout);
 
 module.exports=router
