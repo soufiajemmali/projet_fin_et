@@ -20,6 +20,7 @@ const register = async (req, res) => {
   });
   if (candidatExist)
     return res.status(203).json("email is already registered.");
+    
   let ad,
     form,
     exper = null;

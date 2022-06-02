@@ -1,4 +1,5 @@
 const express = require("express");
+const cors = require('cors');
 
 const connect = require("./config/connection");
 const bodyParser = require("body-parser");
@@ -14,12 +15,14 @@ const postulationRoute = require("./Routes/postulation.routes");
 const domaineRoute = require("./Routes/domaine.routes");
 const experienceRoute = require("./Routes/experience.routes");
 const target_domaine_candidatRoute = require("./Routes/target_domaine_candidat.routes");
+const questionRoute = require("./Routes/question.routes")
 dotenv.config({path:'./config/config.env'})
 /* db connect */
 const db = connect().authDb();
 
 /* express sever */
 const app = express();
+app.use(cors());
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 app.use(cookieParser())
@@ -33,6 +36,7 @@ app.use("/postulation", postulationRoute);
 app.use("/domaine", domaineRoute);
 app.use("/experience", experienceRoute);
 app.use("/target_domaine_candidat", target_domaine_candidatRoute);
+app.use("/question",questionRoute);
 
 const port = process.env.PORT ||3000 ;
 app.listen(port, () => console.log(`Example app listening on port ${port}!`));
