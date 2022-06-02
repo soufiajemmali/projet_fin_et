@@ -2,7 +2,7 @@ const express = require("express");
 
 const connect = require("./config/connection");
 const bodyParser = require("body-parser");
-
+const cors = require("cors");
 const adressRoute = require("./Routes/adress.routes");
 const employeurRoute = require("./Routes/employeur.routes");
 const tokenpwdRoute = require("./Routes/token_pwd_reset.routes");
@@ -21,7 +21,12 @@ const db = connect().authDb();
 const app = express();
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
-
+app.use(
+  cors({
+    credentials: true,
+    origin: "http://localhost:3000",
+  })
+);
 app.use("/candidat", candidatRoute);
 app.use("/adress", adressRoute);
 app.use("/employeur", employeurRoute);
@@ -33,5 +38,5 @@ app.use("/domaine", domaineRoute);
 app.use("/experience", experienceRoute);
 app.use("/target_domaine_candidat", target_domaine_candidatRoute);
 
-const port = 3000;
+const port = 3002;
 app.listen(port, () => console.log(`Example app listening on port ${port}!`));

@@ -1,12 +1,11 @@
 const Employeur = require("../model/employeur");
 
-const sequelize=require('../config/config')
-const { QueryTypes } = require('sequelize');
+const sequelize = require("../config/config");
+const { QueryTypes } = require("sequelize");
 
 const Adress = require("../model/adress");
 const Job_offer = require("../model/job_offer");
 const Domaine = require("../model/domaine");
-
 
 const register = async (req, res) => {
   const employeurExist = await Employeur.findOne({
@@ -96,15 +95,12 @@ const publication = async (req, res) => {
   }
 };
 
-
-
-
 const update_job_offer = async (req, res) => {
-  const domaine =await Domaine.update({
-    nom: req.body.domaine.nom 
+  const domaine = await Domaine.update({
+    nom: req.body.domaine.nom,
   }).catch((e) => console.log("fail : ", e));
-  
-  const job_offer= await Job_offer.update(
+
+  const job_offer = await Job_offer.update(
     {
       titre: req.body.job_offer.titre,
       description: req.body.job_offer.description,
@@ -117,39 +113,53 @@ const update_job_offer = async (req, res) => {
     },
     { where: { id: req.params.id } }
   )
-  .then((r) => {
-    res.status(200).send({message:"job offer updated"})
-    console.log('response if success',r)
-  })
-  .catch((e) => {
-    res.status(400).send({message:"fail"})
-    console.log("fail update : ",e)});
+    .then((r) => {
+      res.status(200).send({ message: "job offer updated" });
+      console.log("response if success", r);
+    })
+    .catch((e) => {
+      res.status(400).send({ message: "fail" });
+      console.log("fail update : ", e);
+    });
 };
 
 const delete_job_offer = (req, res) => {
   Job_offer.destroy({ where: { id: req.params.id } })
     .then((r) => {
-      res.status(200).send({message:"job offer deleted",})
-      console.log('response if success',r)
+      res.status(200).send({ message: "job offer deleted" });
+      console.log("response if success", r);
     })
     .catch((e) => {
-      res.status(400).send({message:"fail"})
-      console.log("fail delete : ",e)});
-}
+      res.status(400).send({ message: "fail" });
+      console.log("fail delete : ", e);
+    });
+};
 
-
-const getjob_Offre_employeur=async(req,res)=>{
-const {id}=req.params
-  sequelize.query(`select c.nom , jo.titre  from candidat c ,job_offer jo ,postulation p  
+const getjob_Offre_employeur = async (req, res) => {
+  const { id } = req.params;
+  sequelize
+    .query(
+      `select c.nom , jo.titre  from candidat c ,job_offer jo ,postulation p  
   where jo.id_employeur = ${id}
-  and p.id_joboffer =jo.id and p.id_candidat =c.id group by jo.titre,c.nom  `, { type: QueryTypes.SELECT })
- .then((r)=>{
-    res.status(200).send(r)
- })
- .catch((err)=>{
-  res.status(400).send({message:"fail",err})
- })
-}
+  and p.id_joboffer =jo.id and p.id_candidat =c.id group by jo.titre,c.nom  `,
+      { type: QueryTypes.SELECT }
+    )
+    .then((r) => {
+      res.status(200).send(r);
+    })
+    .catch((err) => {
+      res.status(400).send({ message: "fail", err });
+    });
+};
+const get_employeur_by_id = (req, res) => {
+  Employeur.findOne({ where: { id: req.params.id } })
+    .then((responce) => {
+      res.status(200).send(responce);
+    })
+    .catch((err) => {
+      res.status(400).send(err);
+    });
+};
 /*const post_employeur=(req,res)=>{
     Employeur.create({
         nom_societe:req.body.nom_societe,
@@ -181,15 +191,7 @@ const {id}=req.params
     });
 };
 
-const get_employeur_by_id = (req, res) => {
-  Employeur.findOne({ where: { id: req.params.id } })
-    .then((responce) => {
-      res.status(200).send(responce);
-    })
-    .catch((err) => {
-      res.status(400).send(err);
-    });
-};
+
 
 const update_employeur = (req, res) => {
   Employeur.update(
@@ -236,4 +238,5 @@ module.exports = {
   update_job_offer,
   delete_job_offer,
   getjob_Offre_employeur,
+  get_employeur_by_id,
 };
