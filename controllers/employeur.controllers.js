@@ -7,7 +7,14 @@ const Adress = require("../model/adress");
 const Job_offer = require("../model/job_offer");
 const Domaine = require("../model/domaine");
 
+const Authservice = require("../service/auth.service");
+const jwt = require("jsonwebtoken");
+const bcrypt = require("bcrypt");
+
 const register = async (req, res) => {
+  const salt = await bcrypt.genSalt(10);
+  const hashpass = await bcrypt.hash(req.body.employeur.mdp, salt);
+
   const employeurExist = await Employeur.findOne({
     where: { email: req.body.employeur.email },
   });
@@ -31,13 +38,13 @@ const register = async (req, res) => {
       nom_societe: req.body.employeur.nom_societe,
       site_officiel: req.body.employeur.site_officiel,
       email: req.body.employeur.email,
-      password: req.body.employeur.mdp,
+      password: hashpass,
       tel: req.body.employeur.tel,
       type: "employeur",
       active: true,
       id_adress: ad?.dataValues?.id,
-      /*refresh_token:req.body.refresh_token,
-    imageprofil:req.body.imageprofil*/
+
+      /* imageprofil:req.body.imageprofil*/
     });
 
     return res.status(200).send(employeur);
@@ -47,7 +54,8 @@ const register = async (req, res) => {
 };
 
 const login = async (req, res) => {
-  const { email, password } = req.body;
+  const { email } = req.body;
+
   const employeur = await Employeur.findOne({ where: { email: email } }).catch(
     (err) => {
       console.log("Error: ", err);
@@ -57,12 +65,66 @@ const login = async (req, res) => {
   if (!employeur) {
     return res.status(400).json({ message: "Email does not match!" });
   } else {
-    if (employeur.password !== password) {
+    const validPass = await bcrypt.compare(req.body.mdp, employeur.password);
+    if (!validPass) {
       return res.status(400).json({ message: "password does not match!" });
     } else {
-      return res.status(200).send(employeur);
+      let accessToken = Authservice.accessToken(employeur);
+      let refreshToken = Authservice.refreshToken(employeur);
+
+      return res
+        .status(200)
+        .cookie("refreshToken", refreshToken, {
+          httpOnly: true,
+          expires: new Date(new Date().getTime() + 3600 * 24 * 2 * 1000),
+        })
+        .send({
+          new: employeur,
+          accessToken: accessToken,
+          /*  refreshToken: refreshToken, */
+        });
     }
   }
+};
+
+const refreshToken = async (req, res) => {
+  if (req?.cookies?.refreshToken !== undefined) {
+    jwt.verify(
+      req.cookies.refreshToken,
+      "$2a$12$/8EzGDLZe8xJGCEgJ6RTnORT.X8qXTJC/MK/Thd6nq959v8x/Viiq",
+      async (err, decode) => {
+        if (err) return res.status(400).send({ message: "token expired" });
+        else {
+          let Emp = null;
+          console.log("empls", decode);
+          await Employeur.findOne({ where: { id: decode.id } })
+            .then((r) => {
+              Emp = r;
+            })
+            .catch((err) => {
+              res.status(400).send({ message: "Error in getting candidat" });
+            });
+
+          if (Emp.id === undefined) {
+            return res.status(400).send({ message: "there is no employer" });
+          } else {
+            let accessToken = Authservice.accessToken(Emp);
+            res.status(200).send({
+              data: Emp,
+              accessToken: accessToken,
+            });
+          }
+        }
+      }
+    );
+  } else res.status(402).send({ message: "no refresh provided" });
+};
+
+const logout = async (req, res) => {
+  res
+    .status(200)
+    .clearCookie("refreshToken")
+    .send({ message: "cookies cleared" });
 };
 
 const publication = async (req, res) => {
@@ -160,6 +222,7 @@ const get_employeur_by_id = (req, res) => {
       res.status(400).send(err);
     });
 };
+
 /*const post_employeur=(req,res)=>{
     Employeur.create({
         nom_societe:req.body.nom_societe,
@@ -228,13 +291,16 @@ const delete_employeur = (req, res) => {
 }; */
 
 module.exports = {
-  /* get_employeur_by_id,
+  /*  
   get_all_employeur,
   update_employeur,
   delete_employeur,*/
+  get_employeur_by_id,
   register,
   login,
   publication,
+  refreshToken,
+  logout,
   update_job_offer,
   delete_job_offer,
   getjob_Offre_employeur,

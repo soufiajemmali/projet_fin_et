@@ -14,11 +14,9 @@ const Candidat=sequelize.define('candidat',{
     prenom:{type:Sequelize.STRING},
     date_naissance:{type:Sequelize.DATE},
     tel:{type:Sequelize.STRING},
-    id_adress:{type:Sequelize.INTEGER},
+    id_adress:{type:Sequelize.INTEGER}, 
 
-    
-    /*  refresh_token:{type:Sequelize.STRING},
-    imageprofil:{type:Sequelize.STRING}, */
+   /* imageprofil:{type:Sequelize.STRING}, */
     
 },{tableName})
 
@@ -29,7 +27,7 @@ Candidat.belongsTo(Adress,{as :"Adress", foreignKey:"id_adress"});
 Candidat.prototype.toJSON = function () {
     const values = Object.assign({}, this.get());
     delete values.password;
-    delete values.refresh_token;
+    delete values.reefreshToken;
     return values;
 }
 module.exports=Candidat
