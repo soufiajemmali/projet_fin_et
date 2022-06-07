@@ -3,6 +3,9 @@ const sequelize = require("../config/config");
 const Categorie = require("./categorie");
 const Employeur = require("./employeur");
 const Type = require("./type");
+const Question_test = require ("./question_test")
+const Test = require("./test");
+
 
 const tableName = "question";
 
@@ -23,7 +26,13 @@ const Question = sequelize.define(
 
 Question.belongsTo(Categorie, { as: "Categorie", foreignKey: "id_categorie" });
 Question.belongsTo(Type, { as: "Type", foreignKey: "id_type" });
-Question.belongsTo(Employeur, { as: "Employeur", foreignKey: "id_employeur" });
+
+
+ Question.associate = function(models) {
+  Question.belongsTo(Employeur, { as: "Employeur", foreignKey: "id_employeur" })
+  Question.belongsToMany(models.Test, {through: "question_test", foreignKey: 'id_question', as: 'question'})
+  };
+
 
 Question.prototype.toJSON = function () {
   const values = Object.assign({}, this.get());

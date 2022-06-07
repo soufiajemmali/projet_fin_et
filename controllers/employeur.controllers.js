@@ -8,7 +8,7 @@ const Job_offer = require("../model/job_offer");
 const Domaine = require("../model/domaine");
 
 const Authservice = require("../service/auth.service");
-const jwt =require("jsonwebtoken")
+const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
 
 const register = async (req, res) => {
@@ -44,7 +44,7 @@ const register = async (req, res) => {
       active: true,
       id_adress: ad?.dataValues?.id,
 
-    /* imageprofil:req.body.imageprofil*/
+      /* imageprofil:req.body.imageprofil*/
     });
 
     return res.status(200).send(employeur);
@@ -69,55 +69,63 @@ const login = async (req, res) => {
     if (!validPass) {
       return res.status(400).json({ message: "password does not match!" });
     } else {
+      let accessToken = Authservice.accessToken(employeur);
+      let refreshToken = Authservice.refreshToken(employeur);
 
-      let accessToken = Authservice.accessToken(employeur)
-      let refreshToken = Authservice.refreshToken(employeur)
-
-      return res.status(200).cookie('refreshToken', refreshToken, { httpOnly: true, expires: new Date(new Date().getTime() + (3600 * 24 * 2 * 1000)) })
-      .send({
+      return res
+        .status(200)
+        .cookie("refreshToken", refreshToken, {
+          httpOnly: true,
+          expires: new Date(new Date().getTime() + 3600 * 24 * 2 * 1000),
+        })
+        .send({
           new: employeur,
           accessToken: accessToken,
           /*  refreshToken: refreshToken, */
-      });
+        });
     }
   }
 };
 
 const refreshToken = async (req, res) => {
   if (req?.cookies?.refreshToken !== undefined) {
-     jwt.verify(req.cookies.refreshToken,'$2a$12$/8EzGDLZe8xJGCEgJ6RTnORT.X8qXTJC/MK/Thd6nq959v8x/Viiq',async(err,decode)=>{
-         if(err)
-         return res.status(400).send({message:'token expired'})
-         else {
-          let Emp=null
-          console.log('empls',decode)
-           await Employeur.findOne({where: {id:decode.id}}).then((r)=>{
-              Emp=r
-             
-           }).catch((err)=>{
-             res.status(400).send({message:'Error in getting candidat'})
-           })
-          
-           if(Emp.id===undefined)
-           {return res.status(400).send({message:'there is no employer'})}
-           else {
-               let accessToken = Authservice.accessToken(Emp)
-               res.status(200).send({
-                data: Emp,
-                accessToken: accessToken,
+    jwt.verify(
+      req.cookies.refreshToken,
+      "$2a$12$/8EzGDLZe8xJGCEgJ6RTnORT.X8qXTJC/MK/Thd6nq959v8x/Viiq",
+      async (err, decode) => {
+        if (err) return res.status(400).send({ message: "token expired" });
+        else {
+          let Emp = null;
+          console.log("empls", decode);
+          await Employeur.findOne({ where: { id: decode.id } })
+            .then((r) => {
+              Emp = r;
             })
-           }
-         }
-     }) 
-  }
-  else
-      res.status(402).send({ message: 'no refresh provided' })
-}
+            .catch((err) => {
+              res.status(400).send({ message: "Error in getting candidat" });
+            });
 
-const logout=async(req,res)=>{
-  res.status(200).clearCookie('refreshToken').send({message:'cookies cleared'})
- ;
-}
+          if (Emp.id === undefined) {
+            return res.status(400).send({ message: "there is no employer" });
+          } else {
+            let accessToken = Authservice.accessToken(Emp);
+            res.status(200).send({
+              data: Emp,
+              accessToken: accessToken,
+            });
+          }
+        }
+      }
+    );
+  } else res.status(402).send({ message: "no refresh provided" });
+};
+
+const logout = async (req, res) => {
+  res
+    .status(200)
+    .clearCookie("refreshToken")
+    .send({ message: "cookies cleared" });
+};
 
 const publication = async (req, res) => {
   let dom = null;
@@ -206,14 +214,15 @@ const getjob_Offre_employeur = async (req, res) => {
     });
 };
 const get_employeur_by_id = (req, res) => {
-  Employeur.findOne({ where: { id: req.params.id } })
-    .then((responce) => {
-      res.status(200).send(responce);
+  Employeur.findOne({ where: { id: req.params.id }, include:[{model:Adress,as:'Adress'}] })
+    .then((response) => {
+      res.status(200).send({candidat:response});
     })
     .catch((err) => {
       res.status(400).send(err);
     });
 };
+
 
 /*const post_employeur=(req,res)=>{
     Employeur.create({
@@ -246,15 +255,7 @@ const get_employeur_by_id = (req, res) => {
     });
 };
 
-const get_employeur_by_id = (req, res) => {
-  Employeur.findOne({ where: { id: req.params.id } })
-    .then((responce) => {
-      res.status(200).send(responce);
-    })
-    .catch((err) => {
-      res.status(400).send(err);
-    });
-};
+
 
 const update_employeur = (req, res) => {
   Employeur.update(
@@ -291,7 +292,7 @@ const delete_employeur = (req, res) => {
 }; */
 
 module.exports = {
- /*  
+  /*  
   get_all_employeur,
   update_employeur,
   delete_employeur,*/
@@ -304,5 +305,4 @@ module.exports = {
   update_job_offer,
   delete_job_offer,
   getjob_Offre_employeur,
-  
 };

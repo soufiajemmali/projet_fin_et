@@ -1,3 +1,4 @@
+
 const Categorie = require("../model/categorie");
 const Question = require("../model/question");
 const Type = require("../model/type");
@@ -13,7 +14,7 @@ const create_question = async (req, res) => {
     });
    
 
-  await   Categorie.findOne({where:{categorie:req.body.categorie.categorie},}).then((r)=>{
+  await Categorie.findOne({where:{categorie:req.body.categorie.categorie},}).then((r)=>{
         verifCategorie=r
     }).catch((err)=>{
         console.log(err)
@@ -22,7 +23,18 @@ const create_question = async (req, res) => {
 
     console.log("verif success",verifCategorie,'||',verifType)
 
-    
+    if (id_categorie !== "undefined") {
+      const categorie = await Categorie.create
+    ({    categorie: req.body.categorie.categorie})
+   
+  }
+
+   
+  if (id_type !== "undefined") {
+    const type = await Type.create
+  ({    type: req.body.type.type})
+ 
+} 
     
     
     

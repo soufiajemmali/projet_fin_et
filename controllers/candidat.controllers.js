@@ -4,6 +4,7 @@ const Experience = require("../model/experience");
 const Adress = require("../model/adress");
 const Postulation = require("../model/postulation");
 const Job_offer = require("../model/job_offer");
+const CandidatService=require('../service/Candidat.service')
 const { Op } = require("sequelize");
 
 const Authservice = require("../service/auth.service");
@@ -182,6 +183,18 @@ const getPostulation_by_candidate = async (req, res) => {
     });
 };
 
+const get_candidat_by_id=(req,res)=>{
+  Candidat.findOne({where :{id:req.params.id },include:[{model:Adress,as:'Adress'}]})
+  .then(async(responce)=>{
+  let Formation=await CandidatService()?.GetFormationByIDC(responce?.id)
+  let Experience=await CandidatService()?.GetExperienceByIDC(responce?.id)   
+    res.status(200).send({candidat:responce,Formation,Experience})
+  })
+  .catch((err)=>{
+  res.status(400).send(err)
+  })
+}
+
 /* const get_all_candidat=(req,res)=>{
     Candidat.findAll().then((responce)=>{
         res.status(200).send(responce)
@@ -203,15 +216,7 @@ const getPostulation_by_candidate = async (req, res) => {
   })
 } */
 /*
-const get_candidat_by_id=(req,res)=>{
-    Candidat.findOne({where :{id:req.params.id}})
-    .then((responce)=>{
-    res.status(200).send(responce)
-    })
-    .catch((err)=>{
-    res.status(400).send(err)
-    })
-}
+
 
 
 
@@ -247,8 +252,8 @@ const delete_candidat = (req,res) => {
 }*/
 
 module.exports = {
-  /*  get_candidat_by_id,
-    get_all_candidat,*/
+    get_candidat_by_id,
+   /* get_all_candidat,*/
   register,
   login,
   getPostulation_by_candidate,

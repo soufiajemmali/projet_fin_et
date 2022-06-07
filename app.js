@@ -15,7 +15,8 @@ const postulationRoute = require("./Routes/postulation.routes");
 const domaineRoute = require("./Routes/domaine.routes");
 const experienceRoute = require("./Routes/experience.routes");
 const target_domaine_candidatRoute = require("./Routes/target_domaine_candidat.routes");
-const questionRoute = require("./Routes/question.routes")
+const questionRoute = require("./Routes/question.routes");
+const testRoute = require("./Routes/test.routes")
 dotenv.config({path:'./config/config.env'})
 /* db connect */
 const db = connect().authDb();
@@ -37,6 +38,7 @@ app.use("/domaine", domaineRoute);
 app.use("/experience", experienceRoute);
 app.use("/target_domaine_candidat", target_domaine_candidatRoute);
 app.use("/question",questionRoute);
+app.use("/test",testRoute)
 
 const port = process.env.PORT ||3000 ;
 app.listen(port, () => console.log(`Example app listening on port ${port}!`));
